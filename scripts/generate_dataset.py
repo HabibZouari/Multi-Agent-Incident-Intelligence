@@ -101,7 +101,7 @@ def generate_datasets():
 
     # 1. Services
     services_path = generated_dir / "services.json"
-    with open(services_path, "w") as f:
+    with open(services_path, "w", encoding="utf-8") as f:
         json.dump(SERVICES, f, indent=2)
     print(f"Generated {len(SERVICES)} services -> {services_path}")
 
@@ -124,7 +124,7 @@ def generate_datasets():
         })
 
     deployments_path = generated_dir / "deployments.json"
-    with open(deployments_path, "w") as f:
+    with open(deployments_path, "w", encoding="utf-8") as f:
         json.dump(deployments, f, indent=2)
     print(f"Generated {len(deployments)} deployments -> {deployments_path}")
 
@@ -161,78 +161,144 @@ def generate_datasets():
         })
 
     incidents_path = generated_dir / "incidents.json"
-    with open(incidents_path, "w") as f:
+    with open(incidents_path, "w", encoding="utf-8") as f:
         json.dump(incidents, f, indent=2)
     print(f"Generated {len(incidents)} historical incidents -> {incidents_path}")
 
-    # 4. Technical Documentation & Runbooks (50 files)
+    # 4. Technical Documentation & Runbooks (50 files, 10 topics x 5 revisions)
+    # Each topic maps to one incident category so docs, incidents and eval questions stay consistent.
     doc_topics = [
-        ("auth-troubleshooting", "Authentication Troubleshooting Runbook", "runbook", "Authentication Service"),
-        ("db-connection-pool", "PostgreSQL Connection Pool Management", "technical_doc", "User PostgreSQL DB"),
-        ("api-gateway-timeouts", "Kong API Gateway Timeout Runbook", "runbook", "Kong API Gateway"),
-        ("memory-leak-investigation", "Container Memory Leak & OOM Guide", "technical_doc", "All Services"),
-        ("deployment-rollback-guide", "Production Deployment & Rollback Procedures", "runbook", "All Services"),
-        ("ssl-cert-renewal", "SSL/TLS Certificate Lifecycle & Renewal Runbook", "runbook", "Kong API Gateway"),
-        ("redis-cache-tuning", "Redis Cache Eviction & Memory Tuning", "technical_doc", "Redis Cache Cluster"),
-        ("kafka-lag-mitigation", "Kafka Consumer Lag Troubleshooting Guide", "runbook", "Kafka Event Bus"),
-        ("circuit-breaker-config", "Service Mesh Circuit Breaker Configuration", "technical_doc", "Kong API Gateway"),
-        ("env-config-management", "Environment Variable Management & Secrets", "technical_doc", "All Services")
+        ("auth-troubleshooting", "Authentication Troubleshooting Runbook", "runbook", "Authentication Service", "Authentication Failure"),
+        ("db-connection-pool", "PostgreSQL Connection Pool Management", "technical_doc", "User PostgreSQL DB", "Database Connection Exhaustion"),
+        ("api-gateway-timeouts", "Kong API Gateway Timeout Runbook", "runbook", "Kong API Gateway", "API Gateway Timeout"),
+        ("memory-leak-investigation", "Container Memory Leak & OOM Guide", "technical_doc", "All Services", "Memory Leak / OOM"),
+        ("deployment-rollback-guide", "Production Deployment & Rollback Procedures", "runbook", "All Services", "Deployment Regression"),
+        ("ssl-cert-renewal", "SSL/TLS Certificate Lifecycle & Renewal Runbook", "runbook", "Kong API Gateway", "Expired SSL/TLS Certificate"),
+        ("redis-cache-tuning", "Redis Cache Eviction & Memory Tuning", "technical_doc", "Redis Cache Cluster", "Redis Cache Eviction Storm"),
+        ("kafka-lag-mitigation", "Kafka Consumer Lag Troubleshooting Guide", "runbook", "Kafka Event Bus", "Kafka Consumer Lag Spike"),
+        ("circuit-breaker-config", "Service Mesh Circuit Breaker Configuration", "technical_doc", "Kong API Gateway", "Third-Party API Outage"),
+        ("env-config-management", "Environment Variable Management & Secrets", "technical_doc", "All Services", "Misconfigured Environment Variable"),
     ]
 
+    fmt = dict(service="the affected service", version="v1.3.2", date="the renewal deadline", topic="orders-topic", env_var="DATABASE_URL")
+    docs_by_category: dict[str, list[str]] = {}
+
     for i in range(1, 51):
-        topic_key, title, doc_type, svc_name = doc_topics[(i - 1) % len(doc_topics)]
+        topic_key, title, doc_type, svc_name, category = doc_topics[(i - 1) % len(doc_topics)]
+        symptom = SYMPTOMS_TEMPLATE[category].format(**fmt)
+        root_cause = ROOT_CAUSES_TEMPLATE[category].format(**fmt)
+        resolution = RESOLUTIONS_TEMPLATE[category]
         content = f"""# {title} (Doc #{i:03d})
 
+> **Service:** {svc_name} | **Type:** {doc_type} | **Topic:** {category}
+
 ## Overview
-This document outlines standard operating procedures and diagnostic workflows for {svc_name}.
+This document outlines standard operating procedures and diagnostic workflows for {category.lower()} incidents affecting {svc_name}.
 
 ## Common Symptoms & Indicators
-- Elevated HTTP error rates (5xx / 4xx).
-- Latency spikes exceeding SLA thresholds (>500ms p95).
-- Resource exhaustion (CPU, Memory, Connection Pool).
+- {symptom}
+- Elevated HTTP error rates (5xx / 4xx) and latency spikes exceeding SLA thresholds (>500ms p95).
+
+## Known Root Causes
+- {root_cause}
 
 ## Investigation Steps
 1. Check CloudWatch / Prometheus metrics for anomalies around the incident window.
-2. Inspect recent deployment logs and change management records.
-3. Verify downstream dependencies status ({svc_name}).
-4. Run health check endpoints and inspect error stack traces.
+2. Inspect recent deployment logs and change management records for {svc_name}.
+3. Verify downstream dependencies and inspect error stack traces.
 
 ## Resolution & Mitigation
-- Apply immediate rollback or traffic shedding if deployment-related.
-- Scale container replicas or connection pool parameters if resource-constrained.
-- Escalate to on-call owner ({svc_name}) if unresolved after 30 minutes.
+- {resolution}
+- Escalate to the on-call owner of {svc_name} if unresolved after 30 minutes.
 """
         target_dir = runbooks_dir if doc_type == "runbook" else docs_dir
-        file_path = target_dir / f"{topic_key}-{i:02d}.md"
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        file_name = f"{topic_key}-{i:02d}.md"
+        (target_dir / file_name).write_text(content, encoding="utf-8")
+        docs_by_category.setdefault(category, []).append(file_name)
 
-    print(f"Generated 50 technical documentation and runbook files in data/documents and data/runbooks")
+    print("Generated 50 technical documentation and runbook files in data/documents and data/runbooks")
 
     # 5. Golden Evaluation Dataset (50 questions)
-    eval_questions = []
-    eval_categories = [
-        "Simple Documentation Retrieval", "Technical Troubleshooting", "Similar Incident Discovery",
-        "Structured Database Queries", "Multi-Step Investigations", "RAG + Database Combined",
-        "Insufficient Information", "Hallucination Resistance"
+    # `ground_truth_docs` lists every document that legitimately answers the question (empty when the
+    # correct behaviour is to ask for clarification or to report that no evidence exists).
+    # `expected_route` is the Supervisor intent the question should be classified as.
+    unknown_services = ["Quantum Ledger Service", "Holographic Billing Engine", "Teleport Gateway", "Nebula Auth Mesh"]
+    vague_prompts = [
+        "Something is wrong in production, can you help?",
+        "Things feel slow today. Any idea why?",
+        "Users are complaining. What should we do?",
+        "We have an issue, please investigate.",
+    ]
+    infra_services = [s for s in SERVICES if s["tier"] in ("Tier-1", "Tier-2")]
+
+    def q_simple(cat, svc):
+        return (f"What is the runbook procedure for a {cat.lower()}?", docs_by_category[cat], "knowledge",
+                RESOLUTIONS_TEMPLATE[cat], ["search_knowledge_base"])
+
+    def q_troubleshoot(cat, svc):
+        symptom = SYMPTOMS_TEMPLATE[cat].format(**{**fmt, "service": svc["name"]})
+        return (f"{symptom} What troubleshooting steps should we follow?", docs_by_category[cat], "knowledge",
+                RESOLUTIONS_TEMPLATE[cat], ["search_knowledge_base"])
+
+    def q_similar(cat, svc):
+        return (f"Have we seen {cat.lower()} on {svc['name']} before? Show similar past incidents.", [], "incident",
+                "List historical incidents of the same category, with their root causes and resolutions.", ["search_incidents"])
+
+    def q_structured(cat, svc):
+        if random.random() < 0.5:
+            return (f"What recent deployments were made to {svc['name']}?", [], "incident",
+                    "List the most recent deployment records for the service.", ["get_recent_deployments"])
+        return (f"Which services does {svc['name']} depend on?", [], "incident",
+                "Return the dependency list from the service catalog.", ["get_service_dependencies"])
+
+    def q_multistep(cat, svc):
+        symptom = SYMPTOMS_TEMPLATE[cat].format(**{**fmt, "service": svc["name"]})
+        return (f"{symptom} Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+                docs_by_category[cat], "comprehensive", RESOLUTIONS_TEMPLATE[cat],
+                ["search_knowledge_base", "search_incidents", "get_recent_deployments"])
+
+    def q_combined(cat, svc):
+        return (f"Which runbook applies to {cat.lower()}, and has it happened on {svc['name']} recently?",
+                docs_by_category[cat], "comprehensive", RESOLUTIONS_TEMPLATE[cat],
+                ["search_knowledge_base", "search_incidents"])
+
+    def q_insufficient(cat, svc):
+        return (random.choice(vague_prompts), [], "comprehensive",
+                "Ask the user for clarification (service, symptoms, time window) instead of guessing.", [])
+
+    def q_hallucination(cat, svc):
+        return (f"What was the root cause of last week's outage of {random.choice(unknown_services)}?", [], "incident",
+                "State that no matching service, incident or runbook exists; do not invent a root cause.", ["search_incidents"])
+
+    question_makers = [
+        ("Simple Documentation Retrieval", q_simple), ("Technical Troubleshooting", q_troubleshoot),
+        ("Similar Incident Discovery", q_similar), ("Structured Database Queries", q_structured),
+        ("Multi-Step Investigations", q_multistep), ("RAG + Database Combined", q_combined),
+        ("Insufficient Information", q_insufficient), ("Hallucination Resistance", q_hallucination),
     ]
 
+    eval_questions = []
     for i in range(1, 51):
-        category = eval_categories[(i - 1) % len(eval_categories)]
+        category_name, maker = question_makers[(i - 1) % len(question_makers)]
+        incident_cat = random.choice(INCIDENT_CATEGORIES)
+        svc = random.choice(infra_services)
+        query, truth_docs, route, expected_answer, tools = maker(incident_cat, svc)
         eval_questions.append({
             "question_id": f"EQ-{i:03d}",
-            "category": category,
-            "query": f"How should our engineering team investigate and resolve a {random.choice(INCIDENT_CATEGORIES).lower()} affecting the {random.choice(SERVICES)['name']}?",
-            "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-            "ground_truth_docs": ["auth-troubleshooting-01.md", "db-connection-pool-02.md"],
-            "expected_tools": ["search_knowledge_base", "search_incidents", "get_service_dependencies"]
+            "category": category_name,
+            "query": query,
+            "expected_answer": expected_answer,
+            "expected_route": route,
+            "ground_truth_docs": truth_docs,
+            "expected_tools": tools,
         })
 
     eval_path = Path("evaluation/datasets/golden_dataset.json")
     eval_path.parent.mkdir(parents=True, exist_ok=True)
     with open(eval_path, "w", encoding="utf-8") as f:
         json.dump(eval_questions, f, indent=2)
-    print(f"Generated 50 golden evaluation questions -> {eval_path}")
+    print(f"Generated {len(eval_questions)} golden evaluation questions -> {eval_path}")
+
 
 if __name__ == "__main__":
     generate_datasets()

@@ -16,7 +16,8 @@ SQLITE_URL = "sqlite:///./resolveai_local.db"
 
 def get_engine() -> Engine:
     try:
-        engine = create_engine(settings.database_url, pool_pre_ping=True)
+        url = settings.database_url
+        engine = create_engine(url, connect_args={"check_same_thread": False}) if url.startswith("sqlite") else create_engine(url, pool_pre_ping=True)
         with engine.connect() as conn:
             conn.execute(text("SELECT 1;"))
         logger.info("Connected to database: %s", engine.url.render_as_string(hide_password=True))
