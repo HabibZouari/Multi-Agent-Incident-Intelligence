@@ -17,6 +17,10 @@ from backend.agents.incident_agent import IncidentAgent
 from backend.agents.knowledge_agent import KnowledgeAgent
 from backend.agents.supervisor import SupervisorAgent
 
+# A chunk whose BM25 score reaches this value matches rare, specific terms, so it is trusted even when the
+# query names no known service or failure category (e.g. questions about freshly uploaded documents).
+STRONG_BM25 = 8.0
+
 
 class IncidentState(TypedDict):
     messages: list[BaseMessage]
@@ -59,11 +63,19 @@ def build_workflow(model_override: str | None = None):
 
     def knowledge_node(state: IncidentState) -> dict[str, Any]:
         docs = knowledge_agent.search_docs(state["user_query"], top_k=3, service_filter=state.get("service_filter"))
+        categories, services = incident_agent.anchors(state["user_query"])
+        grounded = bool(categories or services) or any(d["bm25_score"] >= STRONG_BM25 for d in docs)
+        note = []
+        if docs and not grounded:
+            # Weak lexical overlap only: presenting these chunks as evidence would be misleading.
+            note = [{"agent": "KnowledgeRetrievalAgent", "note": "Query names no known service or failure mode; discarded low-confidence matches"}]
+            docs = []
         return {
             "retrieved_docs": docs,
             "execution_trace": _trace(
                 state,
                 {"agent": "KnowledgeRetrievalAgent", "action": "Hybrid retrieval (vector + BM25) over runbooks and documentation"},
+                *note,
                 {"agent": "KnowledgeRetrievalAgent", "result": f"Retrieved {len(docs)} document chunks", "sources": [d["source"] for d in docs]},
             ),
         }

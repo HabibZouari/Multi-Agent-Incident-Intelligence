@@ -33,6 +33,11 @@ def match_services(query: str, services: list[ServiceModel]) -> list[str]:
 class IncidentAgent:
     """Finds related historical incidents and recent deployments for the services / failure modes in a query."""
 
+    def anchors(self, query: str) -> tuple[list[str], list[str]]:
+        """Known failure categories and services the query refers to; empty lists mean it is not anchored."""
+        with SessionLocal() as session:
+            return match_categories(query), match_services(query, session.query(ServiceModel).all())
+
     def investigate(self, query: str, limit: int = 5) -> dict[str, list[dict[str, Any]]]:
         logger.info("IncidentAgent querying historical incidents and deployments for: %s", query)
         categories = match_categories(query)

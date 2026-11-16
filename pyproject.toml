@@ -28,4 +28,4 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
-ignore = ["E501"]
+ignore = ["E501", "B008"]  # B008: FastAPI idiom (File(...), Form(...), Query(...))

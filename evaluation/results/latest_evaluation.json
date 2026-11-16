@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-11-16T17:31:51+00:00",
+  "mode": "offline",
+  "top_k": 3,
+  "total_test_cases": 50,
+  "retrieval_cases": 26,
+  "retrieval_hit_rate_pct": 96.2,
+  "context_precision_pct": 96.2,
+  "mrr": 0.962,
+  "routing_accuracy_pct": 100.0,
+  "routing_accuracy_by_category_pct": {
+    "Hallucination Resistance": 100.0,
+    "Insufficient Information": 100.0,
+    "Multi-Step Investigations": 100.0,
+    "RAG + Database Combined": 100.0,
+    "Similar Incident Discovery": 100.0,
+    "Simple Documentation Retrieval": 100.0,
+    "Structured Database Queries": 100.0,
+    "Technical Troubleshooting": 100.0
+  },
+  "workflow_completion_rate_pct": 100.0,
+  "path_adherence_pct": 100.0
+}

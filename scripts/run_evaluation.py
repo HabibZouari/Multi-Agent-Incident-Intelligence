@@ -15,7 +15,7 @@ Usage:  PYTHONPATH=. python scripts/run_evaluation.py [--use-llm] [--top-k 3]
 import argparse
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from statistics import mean
 
@@ -68,7 +68,7 @@ def run_evaluation(use_llm: bool = False, top_k: int = 3) -> dict:
         adherence.append(path_adherence(result["classification"], result))
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "mode": "llm" if use_llm else "offline",
         "top_k": top_k,
         "total_test_cases": len(dataset),

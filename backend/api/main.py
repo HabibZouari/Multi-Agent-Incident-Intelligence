@@ -8,7 +8,14 @@ from sqlalchemy import func, or_
 
 from backend.core.config import settings
 from backend.core.logger import logger
-from backend.models.db import IS_POSTGRES, DeploymentModel, DocumentModel, IncidentModel, ServiceModel, SessionLocal
+from backend.models.db import (
+    IS_POSTGRES,
+    DeploymentModel,
+    DocumentModel,
+    IncidentModel,
+    ServiceModel,
+    SessionLocal,
+)
 from backend.orchestration.workflow import run_investigation
 from backend.rag.ingest import DOCUMENT_TYPES, index_document
 from backend.rag.retrieval import get_retriever
@@ -160,6 +167,16 @@ def get_documents():
             {"document_id": r.document_id, "filename": r.filename, "document_type": r.document_type, "service_name": r.service_name, "chunks": r.chunks}
             for r in rows
         ]
+
+
+@app.get("/api/search")
+def search_knowledge_base(
+    q: str = Query(..., min_length=2, max_length=500),
+    top_k: int = Query(5, ge=1, le=20),
+    service: str | None = None,
+):
+    """Hybrid (vector + BM25) search over the indexed runbooks and documentation."""
+    return get_retriever().search(q, top_k=top_k, service_filter=service)
 
 
 @app.post("/api/documents/upload")
