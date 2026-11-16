@@ -1,14 +1,32 @@
-"""
-Agent Evaluation Metrics (Routing Accuracy, Tool Success Rate, Completion Rate)
-"""
+"""Agent / workflow metrics computed from real workflow executions."""
 
-def compute_routing_accuracy(predicted_category: str, expected_category: str) -> float:
-    return 1.0 if predicted_category.lower() == expected_category.lower() else 0.0
+from typing import Any
 
-def compute_completion_rate(execution_trace: list) -> float:
-    if not execution_trace:
-        return 0.0
-    # Check if final action completed successfully
-    has_supervisor = any(step.get("agent") == "Supervisor" for step in execution_trace)
-    has_action = any(step.get("agent") == "ActionPlanningAgent" for step in execution_trace)
-    return 1.0 if has_supervisor and has_action else 0.5
+# Agents that must (and must not) run for each supervisor route.
+EXPECTED_AGENTS: dict[str, tuple[set[str], set[str]]] = {
+    "knowledge": ({"KnowledgeRetrievalAgent"}, {"IncidentInvestigationAgent"}),
+    "incident": ({"IncidentInvestigationAgent"}, {"KnowledgeRetrievalAgent"}),
+    "comprehensive": ({"KnowledgeRetrievalAgent", "IncidentInvestigationAgent"}, set()),
+}
+
+
+def routing_accuracy(predicted: str, expected: str) -> float:
+    return 1.0 if predicted.strip().lower() == expected.strip().lower() else 0.0
+
+
+def _agents_run(trace: list[dict[str, Any]]) -> set[str]:
+    return {step["agent"] for step in trace if "result" in step}
+
+
+def workflow_completed(result: dict[str, Any]) -> float:
+    """1.0 when the supervisor ran, the action planner finished and a final answer was produced."""
+    agents = _agents_run(result.get("execution_trace", []))
+    supervisor_ran = any(s.get("agent") == "Supervisor" for s in result.get("execution_trace", []))
+    return 1.0 if supervisor_ran and "ActionPlanningAgent" in agents and result.get("final_response") else 0.0
+
+
+def path_adherence(route: str, result: dict[str, Any]) -> float:
+    """1.0 when exactly the agents required by `route` ran (no missing and no unnecessary agent calls)."""
+    required, forbidden = EXPECTED_AGENTS[route]
+    agents = _agents_run(result.get("execution_trace", []))
+    return 1.0 if required <= agents and not (forbidden & agents) else 0.0
