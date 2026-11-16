@@ -23,7 +23,9 @@ env/
 # Local databases & runtime artifacts
 *.db
 *.sqlite3
-evaluation/results/
+
+# Date-dependent generated records (recreate with scripts/generate_dataset.py)
+data/generated/
 
 # AI assistant / editor / OS files
 CLAUDE.md
