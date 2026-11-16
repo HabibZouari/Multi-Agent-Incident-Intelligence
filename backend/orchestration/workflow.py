@@ -1,140 +1,170 @@
-from typing import TypedDict, List, Dict, Any, Optional
+"""LangGraph workflow wiring the Supervisor and the specialised agents together.
+
+            +-> knowledge ----------------------------+
+ supervisor |                                         +-> diagnostic -> action_planning -> END
+            +-> incident -----------------------------+
+            +-> knowledge -> incident (comprehensive) +
+"""
+
+from typing import Any, TypedDict
+
 from langchain_core.messages import BaseMessage
-from langgraph.graph import StateGraph, END
-from backend.agents.supervisor import SupervisorAgent
-from backend.agents.knowledge_agent import KnowledgeAgent
-from backend.agents.incident_agent import IncidentAgent
-from backend.agents.diagnostic_agent import DiagnosticAgent
+from langgraph.graph import END, StateGraph
+
 from backend.agents.action_agent import ActionPlanningAgent
+from backend.agents.diagnostic_agent import DiagnosticAgent
+from backend.agents.incident_agent import IncidentAgent
+from backend.agents.knowledge_agent import KnowledgeAgent
+from backend.agents.supervisor import SupervisorAgent
+
+# A chunk whose BM25 score reaches this value matches rare, specific terms, so it is trusted even when the
+# query names no known service or failure category (e.g. questions about freshly uploaded documents).
+STRONG_BM25 = 8.0
+
 
 class IncidentState(TypedDict):
-    messages: List[BaseMessage]
+    messages: list[BaseMessage]
     user_query: str
+    service_filter: str | None
     classification: str
-    retrieved_docs: List[Dict[str, Any]]
-    historical_incidents: List[Dict[str, Any]]
-    deployments: List[Dict[str, Any]]
-    service_info: Dict[str, Any]
-    diagnoses: List[str]
-    action_plan: List[str]
+    retrieved_docs: list[dict[str, Any]]
+    historical_incidents: list[dict[str, Any]]
+    deployments: list[dict[str, Any]]
+    matched_services: list[str]
+    diagnoses: list[str]
+    action_plan: list[str]
     final_response: str
-    execution_trace: List[Dict[str, Any]]
-    model_override: Optional[str]
+    execution_trace: list[dict[str, Any]]
+    model_override: str | None
 
-def run_investigation(query: str, model_override: Optional[str] = None) -> Dict[str, Any]:
-    supervisor = SupervisorAgent(model_override=model_override)
+
+def _trace(state: IncidentState, *entries: dict[str, Any]) -> list[dict[str, Any]]:
+    return [*state.get("execution_trace", []), *entries]
+
+
+def build_workflow(model_override: str | None = None):
+    """Compile the investigation graph. Agents are created once per graph, not once per node call."""
+    supervisor = SupervisorAgent(model_override)
     knowledge_agent = KnowledgeAgent()
     incident_agent = IncidentAgent()
-    diagnostic_agent = DiagnosticAgent(model_override=model_override)
-    action_agent = ActionPlanningAgent(model_override=model_override)
+    diagnostic_agent = DiagnosticAgent(model_override)
+    action_agent = ActionPlanningAgent(model_override)
 
-    def supervisor_node(state: IncidentState) -> IncidentState:
-        trace = state.get("execution_trace", [])
-        trace.append({"agent": "Supervisor", "action": "Analyzing intent & deciding collaboration scope", "query": query})
+    def supervisor_node(state: IncidentState) -> dict[str, Any]:
+        category = supervisor.classify_intent(state["user_query"])
+        return {
+            "classification": category,
+            "execution_trace": _trace(
+                state,
+                {"agent": "Supervisor", "action": "Analysing intent and deciding collaboration scope", "query": state["user_query"]},
+                {"agent": "Supervisor", "decision": f"Routing to intent category: {category}", "method": supervisor.last_method},
+            ),
+        }
 
-        category = supervisor.classify_intent(query)
-        trace.append({"agent": "Supervisor", "decision": f"Routing to intent category: {category}"})
-        return {**state, "classification": category, "execution_trace": trace}
+    def knowledge_node(state: IncidentState) -> dict[str, Any]:
+        docs = knowledge_agent.search_docs(state["user_query"], top_k=3, service_filter=state.get("service_filter"))
+        categories, services = incident_agent.anchors(state["user_query"])
+        grounded = bool(categories or services) or any(d["bm25_score"] >= STRONG_BM25 for d in docs)
+        note = []
+        if docs and not grounded:
+            # Weak lexical overlap only: presenting these chunks as evidence would be misleading.
+            note = [{"agent": "KnowledgeRetrievalAgent", "note": "Query names no known service or failure mode; discarded low-confidence matches"}]
+            docs = []
+        return {
+            "retrieved_docs": docs,
+            "execution_trace": _trace(
+                state,
+                {"agent": "KnowledgeRetrievalAgent", "action": "Hybrid retrieval (vector + BM25) over runbooks and documentation"},
+                *note,
+                {"agent": "KnowledgeRetrievalAgent", "result": f"Retrieved {len(docs)} document chunks", "sources": [d["source"] for d in docs]},
+            ),
+        }
 
-    def knowledge_agent_node(state: IncidentState) -> IncidentState:
-        trace = state.get("execution_trace", [])
-        trace.append({"agent": "KnowledgeRetrievalAgent", "action": "Executing hybrid retrieval on documentation"})
+    def incident_node(state: IncidentState) -> dict[str, Any]:
+        result = incident_agent.investigate(state["user_query"])
+        return {
+            "historical_incidents": result["historical_incidents"],
+            "deployments": result["deployments"],
+            "matched_services": result["matched_services"],
+            "execution_trace": _trace(
+                state,
+                {"agent": "IncidentInvestigationAgent", "action": "Querying historical incidents and deployments"},
+                {
+                    "agent": "IncidentInvestigationAgent",
+                    "result": f"Found {len(result['historical_incidents'])} incidents, {len(result['deployments'])} deployments",
+                    "matched_services": result["matched_services"],
+                },
+            ),
+        }
 
-        docs = knowledge_agent.search_docs(query, top_k=3)
-        trace.append({"agent": "KnowledgeRetrievalAgent", "result": f"Retrieved {len(docs)} document chunks"})
-        return {**state, "retrieved_docs": docs, "execution_trace": trace}
-
-    def incident_agent_node(state: IncidentState) -> IncidentState:
-        trace = state.get("execution_trace", [])
-        trace.append({"agent": "IncidentInvestigationAgent", "action": "Querying historical incidents and deployments"})
-
-        result = incident_agent.investigate(query)
-        inc_list = result["historical_incidents"]
-        dep_list = result["deployments"]
-
-        trace.append({"agent": "IncidentInvestigationAgent", "result": f"Found {len(inc_list)} incidents, {len(dep_list)} deployments"})
-        return {**state, "historical_incidents": inc_list, "deployments": dep_list, "execution_trace": trace}
-
-    def diagnostic_agent_node(state: IncidentState) -> IncidentState:
-        trace = state.get("execution_trace", [])
-        trace.append({"agent": "DiagnosticAgent", "action": "Synthesizing multi-domain evidence & generating root-cause hypotheses"})
-
+    def diagnostic_node(state: IncidentState) -> dict[str, Any]:
         diagnoses = diagnostic_agent.analyze(
             query=state["user_query"],
             docs=state.get("retrieved_docs", []),
             incidents=state.get("historical_incidents", []),
-            deployments=state.get("deployments", [])
+            deployments=state.get("deployments", []),
         )
-        trace.append({"agent": "DiagnosticAgent", "result": "Generated grounded root-cause hypotheses"})
-        return {**state, "diagnoses": diagnoses, "execution_trace": trace}
-
-    def action_planning_agent_node(state: IncidentState) -> IncidentState:
-        trace = state.get("execution_trace", [])
-        trace.append({"agent": "ActionPlanningAgent", "action": "Generating actionable troubleshooting plan & report"})
-
-        # Pass diagnoses or fallback to all retrieved evidence if diagnoses is empty
-        diagnoses_input = state.get("diagnoses", [])
-        if not diagnoses_input:
-            diagnoses_input = [
-                f"User Query: {query}",
-                f"Retrieved Docs: {len(state.get('retrieved_docs', []))}",
-                f"Historical Incidents: {len(state.get('historical_incidents', []))}",
-                f"Deployments: {len(state.get('deployments', []))}"
-            ]
-
-        final_text = action_agent.plan(diagnoses_input)
-        trace.append({"agent": "ActionPlanningAgent", "result": "Generated action plan and final report"})
-        return {**state, "action_plan": [final_text], "final_response": final_text, "execution_trace": trace}
-
-    def route_decision(state: IncidentState) -> str:
-        cat = state.get("classification", "comprehensive")
-        if cat == "knowledge":
-            return "knowledge_only"
-        elif cat == "incident":
-            return "incident_only"
-        else:
-            return "comprehensive_collaboration"
-
-    workflow = StateGraph(IncidentState)
-
-    workflow.add_node("supervisor", supervisor_node)
-    workflow.add_node("knowledge_agent", knowledge_agent_node)
-    workflow.add_node("incident_agent", incident_agent_node)
-    workflow.add_node("diagnostic_agent", diagnostic_agent_node)
-    workflow.add_node("action_agent", action_planning_agent_node)
-
-    workflow.set_entry_point("supervisor")
-
-    workflow.add_conditional_edges(
-        "supervisor",
-    route_decision,
-        {
-            "knowledge_only": "knowledge_agent",
-            "incident_only": "incident_agent",
-            "comprehensive_collaboration": "knowledge_agent"
+        return {
+            "diagnoses": diagnoses,
+            "execution_trace": _trace(
+                state,
+                {"agent": "DiagnosticAgent", "action": "Synthesising evidence into root-cause hypotheses"},
+                {"agent": "DiagnosticAgent", "result": "Generated root-cause hypotheses"},
+            ),
         }
+
+    def action_node(state: IncidentState) -> dict[str, Any]:
+        plan = action_agent.plan(state.get("diagnoses", []), query=state["user_query"])
+        return {
+            "action_plan": [plan],
+            "final_response": plan,
+            "execution_trace": _trace(
+                state,
+                {"agent": "ActionPlanningAgent", "action": "Generating troubleshooting plan"},
+                {"agent": "ActionPlanningAgent", "result": "Generated action plan and final report"},
+            ),
+        }
+
+    def route_from_supervisor(state: IncidentState) -> str:
+        return "incident_agent" if state["classification"] == "incident" else "knowledge_agent"
+
+    def route_from_knowledge(state: IncidentState) -> str:
+        return "incident_agent" if state["classification"] == "comprehensive" else "diagnostic_agent"
+
+    graph = StateGraph(IncidentState)
+    graph.add_node("supervisor", supervisor_node)
+    graph.add_node("knowledge_agent", knowledge_node)
+    graph.add_node("incident_agent", incident_node)
+    graph.add_node("diagnostic_agent", diagnostic_node)
+    graph.add_node("action_agent", action_node)
+
+    graph.set_entry_point("supervisor")
+    graph.add_conditional_edges(
+        "supervisor", route_from_supervisor, {"knowledge_agent": "knowledge_agent", "incident_agent": "incident_agent"}
     )
+    graph.add_conditional_edges(
+        "knowledge_agent", route_from_knowledge, {"incident_agent": "incident_agent", "diagnostic_agent": "diagnostic_agent"}
+    )
+    graph.add_edge("incident_agent", "diagnostic_agent")
+    graph.add_edge("diagnostic_agent", "action_agent")
+    graph.add_edge("action_agent", END)
+    return graph.compile()
 
-    # Ensure every branch eventually flows into diagnostic_agent before action_agent
-    workflow.add_edge("knowledge_agent", "incident_agent")
-    workflow.add_edge("incident_agent", "diagnostic_agent")
-    workflow.add_edge("diagnostic_agent", "action_agent")
-    workflow.add_edge("action_agent", END)
 
-    app_workflow = workflow.compile()
-
-    initial_state = {
+def run_investigation(query: str, model_override: str | None = None, service_filter: str | None = None) -> dict[str, Any]:
+    initial_state: IncidentState = {
         "messages": [],
         "user_query": query,
+        "service_filter": service_filter,
         "classification": "",
         "retrieved_docs": [],
         "historical_incidents": [],
         "deployments": [],
-        "service_info": {},
+        "matched_services": [],
         "diagnoses": [],
         "action_plan": [],
         "final_response": "",
         "execution_trace": [],
-        "model_override": model_override
+        "model_override": model_override,
     }
-    return app_workflow.invoke(initial_state)
+    return build_workflow(model_override).invoke(initial_state)

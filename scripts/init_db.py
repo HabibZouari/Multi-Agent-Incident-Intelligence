@@ -1,124 +1,97 @@
 #!/usr/bin/env python3
-"""
-Database Initialization & Seeding Script for ResolveAI
-Loads generated JSON datasets and markdown files into PostgreSQL or SQLite fallback.
+"""Database initialisation & seeding for ResolveAI.
+
+Loads the generated JSON datasets and the markdown knowledge base into PostgreSQL (or the SQLite
+fallback). It is idempotent: if the database is already seeded it does nothing, unless --reset is given,
+which drops and recreates every table.
+
+Usage:  PYTHONPATH=. python scripts/init_db.py [--reset]
 """
 
+import argparse
 import json
-from pathlib import Path
 from datetime import datetime
-from sqlalchemy import text
-from backend.models.db import engine, SessionLocal, Base, ServiceModel, IncidentModel, DeploymentModel, EvalDatasetModel, DocumentModel
-from backend.rag.retrieval import HybridRetriever
+from pathlib import Path
 
-def init_database():
-    print("Dropping and recreating database tables...")
+from backend.models.db import (
+    Base,
+    DeploymentModel,
+    EvalDatasetModel,
+    IncidentModel,
+    ServiceModel,
+    SessionLocal,
+    create_schema,
+    engine,
+)
+from backend.rag.ingest import index_document
+from backend.rag.retrieval import get_retriever
+
+GENERATED_DIR = Path("data/generated")
+EVAL_PATH = Path("evaluation/datasets/golden_dataset.json")
+KNOWLEDGE_DIRS = {Path("data/documents"): "technical_doc", Path("data/runbooks"): "runbook"}
+
+
+def _load(name: str) -> list[dict]:
+    path = GENERATED_DIR / name
+    if not path.exists():
+        raise SystemExit(f"Missing {path}. Run `python scripts/generate_dataset.py` first.")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _is_seeded() -> bool:
+    try:
+        with SessionLocal() as session:
+            return session.query(ServiceModel).count() > 0
+    except Exception:  # noqa: BLE001 - tables do not exist yet
+        return False
+
+
+def init_database(reset: bool = False) -> None:
+    target = engine.url.render_as_string(hide_password=True)
+    if not reset and _is_seeded():
+        print(f"{target} is already seeded; nothing to do (use --reset to rebuild).")
+        return
+    print(f"Recreating schema on {target} ...")
     Base.metadata.drop_all(bind=engine)
-    if "postgresql" in str(engine.url):
-        try:
-            with engine.begin() as conn:
-                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-        except Exception:
-            pass
-    Base.metadata.create_all(bind=engine)
+    create_schema()
 
-    session = SessionLocal()
-    generated_dir = Path("data/generated")
-    retriever = HybridRetriever()
+    retriever = get_retriever()
+    with SessionLocal() as session:
+        print("Seeding services, deployments and incidents...")
+        session.add_all(ServiceModel(**s) for s in _load("services.json"))
+        session.add_all(
+            DeploymentModel(**{**d, "deployed_at": datetime.fromisoformat(d["deployed_at"])}) for d in _load("deployments.json")
+        )
+        session.add_all(
+            IncidentModel(
+                **{
+                    **{k: v for k, v in inc.items() if k != "service_id"},
+                    "created_at": datetime.fromisoformat(inc["created_at"]),
+                    "resolved_at": datetime.fromisoformat(inc["resolved_at"]),
+                }
+            )
+            for inc in _load("incidents.json")
+        )
 
-    # 1. Seed Services
-    print("Seeding services...")
-    with open(generated_dir / "services.json", "r") as f:
-        services_data = json.load(f)
-    for s in services_data:
-        session.add(ServiceModel(
-            service_id=s["service_id"],
-            name=s["name"],
-            tier=s["tier"],
-            owner=s["owner"],
-            dependencies=s["dependencies"]
-        ))
+        if EVAL_PATH.exists():
+            print("Seeding golden evaluation dataset...")
+            session.add_all(EvalDatasetModel(**eq) for eq in json.loads(EVAL_PATH.read_text(encoding="utf-8")))
 
-    # 2. Seed Deployments
-    print("Seeding deployments...")
-    with open(generated_dir / "deployments.json", "r") as f:
-        deployments_data = json.load(f)
-    for d in deployments_data:
-        session.add(DeploymentModel(
-            deployment_id=d["deployment_id"],
-            service_name=d["service_name"],
-            service_id=d["service_id"],
-            version=d["version"],
-            deployed_at=datetime.fromisoformat(d["deployed_at"]),
-            author=d["author"],
-            status=d["status"],
-            changes_summary=d["changes_summary"]
-        ))
+        print("Indexing knowledge base (chunk + embed)...")
+        docs = chunks = 0
+        for directory, default_type in KNOWLEDGE_DIRS.items():
+            for path in sorted(directory.glob("*.md")):
+                chunks += index_document(
+                    session, path.read_text(encoding="utf-8"), path.name, document_type=default_type, retriever=retriever
+                )
+                docs += 1
+        session.commit()
 
-    # 3. Seed Incidents
-    print("Seeding incidents...")
-    with open(generated_dir / "incidents.json", "r") as f:
-        incidents_data = json.load(f)
-    for inc in incidents_data:
-        session.add(IncidentModel(
-            incident_id=inc["incident_id"],
-            title=inc["title"],
-            severity=inc["severity"],
-            service_name=inc["service_name"],
-            status=inc["status"],
-            category=inc["category"],
-            symptoms=inc["symptoms"],
-            root_cause=inc["root_cause"],
-            resolution=inc["resolution"],
-            created_at=datetime.fromisoformat(inc["created_at"]),
-            resolved_at=datetime.fromisoformat(inc["resolved_at"])
-        ))
+    retriever.refresh()
+    print(f"Done: {docs} documents / {chunks} chunks indexed.")
 
-    # 4. Seed Eval Dataset
-    print("Seeding evaluation dataset...")
-    eval_path = Path("evaluation/datasets/golden_dataset.json")
-    if eval_path.exists():
-        with open(eval_path, "r", encoding="utf-8") as f:
-            eval_data = json.load(f)
-        for eq in eval_data:
-            session.add(EvalDatasetModel(
-                question_id=eq["question_id"],
-                category=eq["category"],
-                query=eq["query"],
-                expected_answer=eq["expected_answer"],
-                ground_truth_docs=eq["ground_truth_docs"],
-                expected_tools=eq["expected_tools"]
-            ))
-
-    # 5. Seed Documents & Runbooks with consistent embeddings
-    print("Seeding documents and runbooks...")
-    doc_dirs = [Path("data/documents"), Path("data/runbooks")]
-    for d_dir in doc_dirs:
-        if d_dir.exists():
-            for file_path in d_dir.glob("*.md"):
-                with open(file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-
-                chunks = content.split("\n\n")
-                for idx, chunk in enumerate(chunks):
-                    if not chunk.strip():
-                        continue
-                    vec = retriever.get_embedding(chunk)
-                    doc_id = file_path.stem
-                    session.add(DocumentModel(
-                        document_id=doc_id,
-                        filename=file_path.name,
-                        document_type="runbook" if "runbooks" in str(d_dir) else "technical_doc",
-                        service_name="Core Services",
-                        chunk_id=idx,
-                        content=chunk,
-                        embedding=vec,
-                        metadata_json={"source": str(file_path)}
-                    ))
-
-    session.commit()
-    session.close()
-    print("Database initialization and seeding completed successfully.")
 
 if __name__ == "__main__":
-    init_database()
+    parser = argparse.ArgumentParser(description="Seed the ResolveAI database.")
+    parser.add_argument("--reset", action="store_true", help="drop and recreate all tables before seeding")
+    init_database(reset=parser.parse_args().reset)

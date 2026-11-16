@@ -2,751 +2,713 @@
   {
     "question_id": "EQ-001",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the Analytics Data Pipeline?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a kafka consumer lag spike?",
+    "expected_answer": "Increased Kafka consumer group concurrency and scaled consumer pods.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "kafka-lag-mitigation-08.md",
+      "kafka-lag-mitigation-18.md",
+      "kafka-lag-mitigation-28.md",
+      "kafka-lag-mitigation-38.md",
+      "kafka-lag-mitigation-48.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-002",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the User PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Event processing backlog increasing rapidly on topic orders-topic. What troubleshooting steps should we follow?",
+    "expected_answer": "Increased Kafka consumer group concurrency and scaled consumer pods.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "kafka-lag-mitigation-08.md",
+      "kafka-lag-mitigation-18.md",
+      "kafka-lag-mitigation-28.md",
+      "kafka-lag-mitigation-38.md",
+      "kafka-lag-mitigation-48.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-003",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a expired ssl/tls certificate affecting the User PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen expired ssl/tls certificate on Orders PostgreSQL DB before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-004",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a api gateway timeout affecting the CloudFront CDN?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What recent deployments were made to Shipping & Fulfillment?",
+    "expected_answer": "List the most recent deployment records for the service.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-005",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the User PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "External API provider returning HTTP 503 Service Unavailable. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Enabled circuit breaker fallback to cached response data until vendor recovery.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "circuit-breaker-config-09.md",
+      "circuit-breaker-config-19.md",
+      "circuit-breaker-config-29.md",
+      "circuit-breaker-config-39.md",
+      "circuit-breaker-config-49.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-006",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to third-party api outage, and has it happened on Payment Processing Gateway recently?",
+    "expected_answer": "Enabled circuit breaker fallback to cached response data until vendor recovery.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "circuit-breaker-config-09.md",
+      "circuit-breaker-config-19.md",
+      "circuit-breaker-config-29.md",
+      "circuit-breaker-config-39.md",
+      "circuit-breaker-config-49.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-007",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "Something is wrong in production, can you help?",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-008",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a database connection exhaustion affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Holographic Billing Engine?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-009",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the Kong API Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a database connection exhaustion?",
+    "expected_answer": "Restarted application service pods to clear stale connections, adjusted max pool size from 50 to 200, and deployed connection leak fix.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "db-connection-pool-02.md",
+      "db-connection-pool-12.md",
+      "db-connection-pool-22.md",
+      "db-connection-pool-32.md",
+      "db-connection-pool-42.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-010",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a api gateway timeout affecting the Catalog PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Users experiencing HTTP 401/500 errors when logging in. Token validation failing. What troubleshooting steps should we follow?",
+    "expected_answer": "Rolled back authentication service deployment, synchronized JWT secret environment variable across all nodes, and verified login success.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
       "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "auth-troubleshooting-11.md",
+      "auth-troubleshooting-21.md",
+      "auth-troubleshooting-31.md",
+      "auth-troubleshooting-41.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-011",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a database connection exhaustion affecting the Notification Dispatcher?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen third-party api outage on Inventory Management before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-012",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the Orders PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Which services does Payment Processing Gateway depend on?",
+    "expected_answer": "Return the dependency list from the service catalog.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
       "get_service_dependencies"
     ]
   },
   {
     "question_id": "EQ-013",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the ML Recommendation Model?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Service failing to start on boot due to missing or invalid ENV variable DATABASE_URL. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Updated Kubernetes ConfigMap, restarted pods, and added startup health check validation.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "env-config-management-10.md",
+      "env-config-management-20.md",
+      "env-config-management-30.md",
+      "env-config-management-40.md",
+      "env-config-management-50.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-014",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a expired ssl/tls certificate affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to kafka consumer lag spike, and has it happened on Authentication Service recently?",
+    "expected_answer": "Increased Kafka consumer group concurrency and scaled consumer pods.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "kafka-lag-mitigation-08.md",
+      "kafka-lag-mitigation-18.md",
+      "kafka-lag-mitigation-28.md",
+      "kafka-lag-mitigation-38.md",
+      "kafka-lag-mitigation-48.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-015",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a misconfigured environment variable affecting the Shipping & Fulfillment?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "Something is wrong in production, can you help?",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-016",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the Analytics Data Pipeline?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Teleport Gateway?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-017",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the Authentication Service?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a authentication failure?",
+    "expected_answer": "Rolled back authentication service deployment, synchronized JWT secret environment variable across all nodes, and verified login success.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
       "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "auth-troubleshooting-11.md",
+      "auth-troubleshooting-21.md",
+      "auth-troubleshooting-31.md",
+      "auth-troubleshooting-41.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-018",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the CloudFront CDN?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Kong gateway returning 504 Gateway Timeout on downstream calls to Search & Recommendation Engine. What troubleshooting steps should we follow?",
+    "expected_answer": "Scaled up downstream service replicas from 3 to 8 and optimized database index on frequently queried table.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "api-gateway-timeouts-03.md",
+      "api-gateway-timeouts-13.md",
+      "api-gateway-timeouts-23.md",
+      "api-gateway-timeouts-33.md",
+      "api-gateway-timeouts-43.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-019",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a redis cache eviction storm affecting the Authentication Service?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen database connection exhaustion on User PostgreSQL DB before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-020",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the S3 Asset Storage?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Which services does Catalog PostgreSQL DB depend on?",
+    "expected_answer": "Return the dependency list from the service catalog.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
       "get_service_dependencies"
     ]
   },
   {
     "question_id": "EQ-021",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a deployment regression affecting the CloudFront CDN?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "HTTP 500 error rate spiked to 14% immediately following deployment of version v1.3.2. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Rolled back deployment to previous stable version (v1.4.2) and applied missing database migration manually.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "deployment-rollback-guide-05.md",
+      "deployment-rollback-guide-15.md",
+      "deployment-rollback-guide-25.md",
+      "deployment-rollback-guide-35.md",
+      "deployment-rollback-guide-45.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-022",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a deployment regression affecting the Authentication Service?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to deployment regression, and has it happened on S3 Asset Storage recently?",
+    "expected_answer": "Rolled back deployment to previous stable version (v1.4.2) and applied missing database migration manually.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "deployment-rollback-guide-05.md",
+      "deployment-rollback-guide-15.md",
+      "deployment-rollback-guide-25.md",
+      "deployment-rollback-guide-35.md",
+      "deployment-rollback-guide-45.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-023",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Kong API Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "We have an issue, please investigate.",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-024",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a api gateway timeout affecting the Search & Recommendation Engine?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Holographic Billing Engine?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-025",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a database connection exhaustion affecting the S3 Asset Storage?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a deployment regression?",
+    "expected_answer": "Rolled back deployment to previous stable version (v1.4.2) and applied missing database migration manually.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "deployment-rollback-guide-05.md",
+      "deployment-rollback-guide-15.md",
+      "deployment-rollback-guide-25.md",
+      "deployment-rollback-guide-35.md",
+      "deployment-rollback-guide-45.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-026",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a api gateway timeout affecting the Catalog PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Users experiencing HTTP 401/500 errors when logging in. Token validation failing. What troubleshooting steps should we follow?",
+    "expected_answer": "Rolled back authentication service deployment, synchronized JWT secret environment variable across all nodes, and verified login success.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
       "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "auth-troubleshooting-11.md",
+      "auth-troubleshooting-21.md",
+      "auth-troubleshooting-31.md",
+      "auth-troubleshooting-41.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-027",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a memory leak / oom affecting the Shipping & Fulfillment?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen redis cache eviction storm on S3 Asset Storage before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-028",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Redis Cache Cluster?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What recent deployments were made to Shipping & Fulfillment?",
+    "expected_answer": "List the most recent deployment records for the service.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-029",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a expired ssl/tls certificate affecting the Redis Cache Cluster?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Users experiencing HTTP 401/500 errors when logging in. Token validation failing. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Rolled back authentication service deployment, synchronized JWT secret environment variable across all nodes, and verified login success.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
       "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "auth-troubleshooting-11.md",
+      "auth-troubleshooting-21.md",
+      "auth-troubleshooting-31.md",
+      "auth-troubleshooting-41.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-030",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a redis cache eviction storm affecting the Product Catalog API?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to database connection exhaustion, and has it happened on Shipping & Fulfillment recently?",
+    "expected_answer": "Restarted application service pods to clear stale connections, adjusted max pool size from 50 to 200, and deployed connection leak fix.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "db-connection-pool-02.md",
+      "db-connection-pool-12.md",
+      "db-connection-pool-22.md",
+      "db-connection-pool-32.md",
+      "db-connection-pool-42.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-031",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a expired ssl/tls certificate affecting the SendGrid Email Relay?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "Something is wrong in production, can you help?",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-032",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the Inventory Management?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Holographic Billing Engine?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-033",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a memory leak / oom affecting the Catalog PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a memory leak / oom?",
+    "expected_answer": "Increased container memory limit from 2GB to 4GB temporarily and deployed patch implementing LRU cache eviction.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "memory-leak-investigation-04.md",
+      "memory-leak-investigation-14.md",
+      "memory-leak-investigation-24.md",
+      "memory-leak-investigation-34.md",
+      "memory-leak-investigation-44.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-034",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a deployment regression affecting the Product Catalog API?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "HTTP 500 error rate spiked to 14% immediately following deployment of version v1.3.2. What troubleshooting steps should we follow?",
+    "expected_answer": "Rolled back deployment to previous stable version (v1.4.2) and applied missing database migration manually.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "deployment-rollback-guide-05.md",
+      "deployment-rollback-guide-15.md",
+      "deployment-rollback-guide-25.md",
+      "deployment-rollback-guide-35.md",
+      "deployment-rollback-guide-45.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-035",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the Product Catalog API?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen database connection exhaustion on Elasticsearch Cluster before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-036",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a redis cache eviction storm affecting the SendGrid Email Relay?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What recent deployments were made to Payment Processing Gateway?",
+    "expected_answer": "List the most recent deployment records for the service.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-037",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a redis cache eviction storm affecting the CloudFront CDN?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Client connections failing with SSL handshake error. Certificate expired on the renewal deadline. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Manually triggered Let's Encrypt certificate renewal via certbot and restarted ingress controller.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "ssl-cert-renewal-06.md",
+      "ssl-cert-renewal-16.md",
+      "ssl-cert-renewal-26.md",
+      "ssl-cert-renewal-36.md",
+      "ssl-cert-renewal-46.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-038",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a kafka consumer lag spike affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to memory leak / oom, and has it happened on User PostgreSQL DB recently?",
+    "expected_answer": "Increased container memory limit from 2GB to 4GB temporarily and deployed patch implementing LRU cache eviction.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "memory-leak-investigation-04.md",
+      "memory-leak-investigation-14.md",
+      "memory-leak-investigation-24.md",
+      "memory-leak-investigation-34.md",
+      "memory-leak-investigation-44.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-039",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the User PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "Users are complaining. What should we do?",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-040",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a database connection exhaustion affecting the Analytics Data Pipeline?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Nebula Auth Mesh?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-041",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a redis cache eviction storm affecting the Fraud Detection Microservice?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a third-party api outage?",
+    "expected_answer": "Enabled circuit breaker fallback to cached response data until vendor recovery.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "circuit-breaker-config-09.md",
+      "circuit-breaker-config-19.md",
+      "circuit-breaker-config-29.md",
+      "circuit-breaker-config-39.md",
+      "circuit-breaker-config-49.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-042",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a misconfigured environment variable affecting the Search & Recommendation Engine?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "High memory pressure on Redis cluster leading to cache misses and database CPU spike. What troubleshooting steps should we follow?",
+    "expected_answer": "Updated Redis maxmemory-policy to volatile-lru and flushed expired keys.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "redis-cache-tuning-07.md",
+      "redis-cache-tuning-17.md",
+      "redis-cache-tuning-27.md",
+      "redis-cache-tuning-37.md",
+      "redis-cache-tuning-47.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-043",
     "category": "Similar Incident Discovery",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "Have we seen database connection exhaustion on Kong API Gateway before? Show similar past incidents.",
+    "expected_answer": "List historical incidents of the same category, with their root causes and resolutions.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-044",
     "category": "Structured Database Queries",
-    "query": "How should our engineering team investigate and resolve a memory leak / oom affecting the Orders PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What recent deployments were made to Search & Recommendation Engine?",
+    "expected_answer": "List the most recent deployment records for the service.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-045",
     "category": "Multi-Step Investigations",
-    "query": "How should our engineering team investigate and resolve a misconfigured environment variable affecting the Analytics Data Pipeline?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "PostgreSQL connection pool exhausted. New queries timing out with 54000/53300 error codes. Check recent deployments, look for similar past incidents and tell us which runbook to follow.",
+    "expected_answer": "Restarted application service pods to clear stale connections, adjusted max pool size from 50 to 200, and deployed connection leak fix.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "db-connection-pool-02.md",
+      "db-connection-pool-12.md",
+      "db-connection-pool-22.md",
+      "db-connection-pool-32.md",
+      "db-connection-pool-42.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
       "search_incidents",
-      "get_service_dependencies"
+      "get_recent_deployments"
     ]
   },
   {
     "question_id": "EQ-046",
     "category": "RAG + Database Combined",
-    "query": "How should our engineering team investigate and resolve a deployment regression affecting the Payment Processing Gateway?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "Which runbook applies to misconfigured environment variable, and has it happened on S3 Asset Storage recently?",
+    "expected_answer": "Updated Kubernetes ConfigMap, restarted pods, and added startup health check validation.",
+    "expected_route": "comprehensive",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "env-config-management-10.md",
+      "env-config-management-20.md",
+      "env-config-management-30.md",
+      "env-config-management-40.md",
+      "env-config-management-50.md"
     ],
     "expected_tools": [
       "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-047",
     "category": "Insufficient Information",
-    "query": "How should our engineering team investigate and resolve a database connection exhaustion affecting the Redis Cache Cluster?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
-    "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
-    ]
+    "query": "Users are complaining. What should we do?",
+    "expected_answer": "Ask the user for clarification (service, symptoms, time window) instead of guessing.",
+    "expected_route": "comprehensive",
+    "ground_truth_docs": [],
+    "expected_tools": []
   },
   {
     "question_id": "EQ-048",
     "category": "Hallucination Resistance",
-    "query": "How should our engineering team investigate and resolve a third-party api outage affecting the Inventory Management?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
-    "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
-    ],
+    "query": "What was the root cause of last week's outage of Holographic Billing Engine?",
+    "expected_answer": "State that no matching service, incident or runbook exists; do not invent a root cause.",
+    "expected_route": "incident",
+    "ground_truth_docs": [],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_incidents"
     ]
   },
   {
     "question_id": "EQ-049",
     "category": "Simple Documentation Retrieval",
-    "query": "How should our engineering team investigate and resolve a authentication failure affecting the User PostgreSQL DB?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "What is the runbook procedure for a expired ssl/tls certificate?",
+    "expected_answer": "Manually triggered Let's Encrypt certificate renewal via certbot and restarted ingress controller.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "ssl-cert-renewal-06.md",
+      "ssl-cert-renewal-16.md",
+      "ssl-cert-renewal-26.md",
+      "ssl-cert-renewal-36.md",
+      "ssl-cert-renewal-46.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   },
   {
     "question_id": "EQ-050",
     "category": "Technical Troubleshooting",
-    "query": "How should our engineering team investigate and resolve a expired ssl/tls certificate affecting the Authentication Service?",
-    "expected_answer": "Investigation requires checking service health metrics, inspecting recent deployments, verifying database/cache connectivity, and following the standard runbook procedure.",
+    "query": "High memory pressure on Redis cluster leading to cache misses and database CPU spike. What troubleshooting steps should we follow?",
+    "expected_answer": "Updated Redis maxmemory-policy to volatile-lru and flushed expired keys.",
+    "expected_route": "knowledge",
     "ground_truth_docs": [
-      "auth-troubleshooting-01.md",
-      "db-connection-pool-02.md"
+      "redis-cache-tuning-07.md",
+      "redis-cache-tuning-17.md",
+      "redis-cache-tuning-27.md",
+      "redis-cache-tuning-37.md",
+      "redis-cache-tuning-47.md"
     ],
     "expected_tools": [
-      "search_knowledge_base",
-      "search_incidents",
-      "get_service_dependencies"
+      "search_knowledge_base"
     ]
   }
 ]

@@ -1,15 +1,29 @@
-"""
-RAG Evaluation Metrics (Context Precision, Recall, Faithfulness)
-"""
+"""Retrieval metrics. A retrieved chunk is relevant when its filename is in the ground-truth set."""
 
-def compute_retrieval_hit_rate(retrieved_docs: list, ground_truth_docs: list) -> float:
-    if not ground_truth_docs:
-        return 0.0
-    matches = sum(1 for doc in retrieved_docs if any(gt in doc.get("filename", "") for gt in ground_truth_docs))
-    return 1.0 if matches > 0 else 0.0
+from typing import Any
 
-def compute_context_precision(retrieved_docs: list, ground_truth_docs: list) -> float:
-    if not retrieved_docs or not ground_truth_docs:
+
+def _relevance(retrieved: list[dict[str, Any]], ground_truth: list[str]) -> list[bool]:
+    truth = set(ground_truth)
+    return [doc.get("filename") in truth for doc in retrieved]
+
+
+def hit_rate(retrieved: list[dict[str, Any]], ground_truth: list[str]) -> float:
+    """1.0 if at least one retrieved chunk comes from a ground-truth document."""
+    return 1.0 if any(_relevance(retrieved, ground_truth)) else 0.0
+
+
+def context_precision(retrieved: list[dict[str, Any]], ground_truth: list[str]) -> float:
+    """Share of retrieved chunks that are relevant (precision@k)."""
+    if not retrieved:
         return 0.0
-    relevant = sum(1 for doc in retrieved_docs if any(gt in doc.get("filename", "") for gt in ground_truth_docs))
-    return relevant / len(retrieved_docs)
+    flags = _relevance(retrieved, ground_truth)
+    return sum(flags) / len(flags)
+
+
+def reciprocal_rank(retrieved: list[dict[str, Any]], ground_truth: list[str]) -> float:
+    """1 / rank of the first relevant chunk, 0 if none was retrieved."""
+    for rank, relevant in enumerate(_relevance(retrieved, ground_truth), start=1):
+        if relevant:
+            return 1.0 / rank
+    return 0.0
