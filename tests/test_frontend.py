@@ -45,3 +45,12 @@ def test_evaluation_page_reads_real_results():
     assert not at.exception
     expected = json.loads(results.read_text(encoding="utf-8"))["routing_accuracy_pct"]
     assert any(m.value == f"{expected}%" for m in at.metric)
+
+
+def test_api_client_sends_api_key_only_when_configured(monkeypatch):
+    import api_client
+
+    monkeypatch.delenv("API_KEY", raising=False)
+    assert api_client._headers() == {}
+    monkeypatch.setenv("API_KEY", "abc")
+    assert api_client._headers() == {"X-API-Key": "abc"}
