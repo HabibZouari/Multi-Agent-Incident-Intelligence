@@ -89,7 +89,8 @@ template-generated, so results validate the pipeline rather than predict real-wo
 ## 7. Security notes
 
 - Upload endpoint: filename reduced to its final path component, extension allow-list, 1 MB limit, UTF-8 validation.
+- Optional shared-secret protection of `/api/*` via `API_KEY` / `X-API-Key` (constant-time comparison); `/health` stays open.
 - CORS restricted to configured origins (`CORS_ORIGINS`), credentials disabled.
 - Internal exception text is logged, not returned to clients.
-- Secrets live in `.env` (git-ignored); only `.env.example` is committed. Docker publishes ports on `127.0.0.1` only.
+- Secrets live in `.env` (git-ignored); only `.env.example` is committed. No default database password exists in code or Compose: `POSTGRES_PASSWORD` is mandatory. Docker publishes ports on `127.0.0.1` only.
 - Any production-changing step proposed by the planner is flagged as requiring human approval; the system itself never executes actions.

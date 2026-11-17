@@ -110,3 +110,17 @@ def test_upload_blocks_path_traversal(upload_dir):
 )
 def test_upload_rejects_bad_files(upload_dir, filename, data, form, status):
     assert client.post("/api/documents/upload", files={"file": (filename, data)}, data=form).status_code == status
+
+
+def test_api_key_protects_api_routes_but_not_health(monkeypatch):
+    monkeypatch.setattr(api.settings, "api_key", "test-secret")
+    assert client.get("/health").status_code == 200
+    assert client.get("/health").json()["api_auth"] is True
+    assert client.get("/api/services").status_code == 401
+    assert client.get("/api/services", headers={"X-API-Key": "wrong"}).status_code == 401
+    assert client.get("/api/services", headers={"X-API-Key": "test-secret"}).status_code == 200
+
+
+def test_api_is_open_when_no_key_is_configured():
+    assert client.get("/api/services").status_code == 200
+    assert client.get("/health").json()["api_auth"] is False

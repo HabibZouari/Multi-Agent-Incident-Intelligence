@@ -65,7 +65,7 @@ MCP clients (e.g. Claude Desktop). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.
 ### Docker (PostgreSQL + pgvector)
 
 ```bash
-cp .env.example .env        # optionally set ANTHROPIC_API_KEY
+cp .env.example .env        # then edit .env: set POSTGRES_PASSWORD (required), optionally ANTHROPIC_API_KEY
 docker compose up --build
 ```
 
@@ -77,7 +77,7 @@ UI <http://localhost:8501> · API docs <http://localhost:8000/docs> · MCP <http
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
-cp .env.example .env
+cp .env.example .env                                    # optional: leave DATABASE_URL unset to use local SQLite
 
 python scripts/generate_dataset.py                      # synthetic incidents, services, runbooks, golden set
 PYTHONPATH=. python scripts/init_db.py                  # seed the database (add --reset to rebuild)
@@ -120,6 +120,16 @@ Latest offline run over the 50-question golden set ([`evaluation/results/latest_
 **Read these numbers with care.** The dataset is synthetic and template-generated, and the offline router was tuned against
 those templates, so the scores show that the pipeline is wired correctly, not how it would perform on real incident data.
 Evaluate on your own incidents and runbooks before drawing conclusions.
+
+## Security & secrets
+
+- **No credentials in the repository.** Secrets live in `.env` (git-ignored); only the placeholder `.env.example` is committed.
+  `docker compose` refuses to start until you set `POSTGRES_PASSWORD`, and without `DATABASE_URL` the app uses a local SQLite file.
+- **Optional API key.** Set `API_KEY` and every `/api/*` request must send it as `X-API-Key` (the Streamlit UI does this
+  automatically). Leave it empty only for local development. `/health` stays open for health checks.
+- Docker publishes all ports on `127.0.0.1` only. Put a reverse proxy with TLS in front before exposing the API.
+- Uploads are restricted to `.md`/`.txt`, 1 MB, with sanitised file names; CORS is limited to `CORS_ORIGINS`.
+- Never commit `.env`, real API keys or database dumps. If a secret was ever committed, rotate it: deleting the file does not remove it from git history.
 
 ## Testing
 

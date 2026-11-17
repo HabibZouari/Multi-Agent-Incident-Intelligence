@@ -13,8 +13,9 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
 
-    # Database (PostgreSQL + pgvector in production, SQLite fallback for local dev)
-    database_url: str = "postgresql://postgres:CHANGE_ME@localhost:5432/resolveai"
+    # Database. Defaults to a local SQLite file so no credentials live in code; set DATABASE_URL
+    # (e.g. in .env) to use PostgreSQL + pgvector.
+    database_url: str = "sqlite:///./resolveai_local.db"
 
     # LLM provider (Anthropic API or any Anthropic-compatible proxy)
     anthropic_api_key: str = ""
@@ -29,12 +30,17 @@ class Settings(BaseSettings):
     mcp_server_port: int = 8001
     mcp_transport: str = "stdio"  # stdio | streamable-http | sse
 
-    # API
+    # API. When API_KEY is set, every /api/* request must send it in the X-API-Key header.
+    api_key: str = ""
     cors_origins: str = "http://localhost:8501,http://127.0.0.1:8501"
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def api_auth_enabled(self) -> bool:
+        return bool(self.api_key.strip())
 
     @property
     def llm_enabled(self) -> bool:

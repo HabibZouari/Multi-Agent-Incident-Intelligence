@@ -1,7 +1,7 @@
 """SQLAlchemy models and engine setup.
 
-PostgreSQL + pgvector is used when reachable; otherwise the app transparently falls back to a
-local SQLite file so the project can be explored without Docker.
+PostgreSQL + pgvector is used when DATABASE_URL points at a reachable server; otherwise the app
+uses (or falls back to) a local SQLite file so the project can be explored without Docker.
 """
 
 from sqlalchemy import JSON, Column, DateTime, Integer, String, Text, create_engine, text

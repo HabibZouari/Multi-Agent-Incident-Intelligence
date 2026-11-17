@@ -1,8 +1,10 @@
+import secrets
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_
 
@@ -30,6 +32,16 @@ app = FastAPI(
     description="Multi-Agent Incident Intelligence & Troubleshooting Platform API",
     version=VERSION,
 )
+
+@app.middleware("http")
+async def require_api_key(request: Request, call_next):
+    """Optional shared-secret protection: active only when API_KEY is configured. /health stays open."""
+    if settings.api_auth_enabled and request.url.path.startswith("/api/") and request.method != "OPTIONS":
+        supplied = request.headers.get("x-api-key", "")
+        if not secrets.compare_digest(supplied.encode(), settings.api_key.encode()):
+            return JSONResponse({"detail": "Invalid or missing API key."}, status_code=401)
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,6 +76,7 @@ def health_check():
         "version": VERSION,
         "database": "postgresql" if IS_POSTGRES else "sqlite",
         "llm_enabled": settings.llm_enabled,
+        "api_auth": settings.api_auth_enabled,
     }
 
 
